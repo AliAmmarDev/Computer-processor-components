@@ -1,0 +1,31 @@
+/*
+ * Adds two 16-bit values.
+ * The most-significant carry bit is ignored.
+ */
+
+CHIP Add16 {
+    IN x[16], y[16];
+    OUT out[16];
+
+
+
+    PARTS:
+    
+    HalfAdder(x=x[0],y=y[0],sum=out[0],carry=z);
+	FullAdder(x=x[1],y=y[1],z=z,sum=out[1],carry=d);
+	FullAdder(x=x[2],y=y[2],z=d,sum=out[2],carry=e);
+	FullAdder(x=x[3],y=y[3],z=e,sum=out[3],carry=f);
+	FullAdder(x=x[4],y=y[4],z=f,sum=out[4],carry=g);
+	FullAdder(x=x[5],y=y[5],z=g,sum=out[5],carry=h);
+	FullAdder(x=x[6],y=y[6],z=h,sum=out[6],carry=i);
+	FullAdder(x=x[7],y=y[7],z=i,sum=out[7],carry=j);
+	FullAdder(x=x[8],y=y[8],z=j,sum=out[8],carry=k);
+	FullAdder(x=x[9],y=y[9],z=k,sum=out[9],carry=l);
+	FullAdder(x=x[10],y=y[10],z=l,sum=out[10],carry=m);
+	FullAdder(x=x[11],y=y[11],z=m,sum=out[11],carry=n);
+	FullAdder(x=x[12],y=y[12],z=n,sum=out[12],carry=o);
+	FullAdder(x=x[13],y=y[13],z=o,sum=out[13],carry=p);
+	FullAdder(x=x[14],y=y[14],z=p,sum=out[14],carry=q);
+	FullAdder(x=x[15],y=y[15],z=q,sum=out[15],carry=drop);
+
+}
