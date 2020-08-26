@@ -1,0 +1,71 @@
+/**
+ * The Central Processing unit (CPU).
+ * Consists of an ALU and a set of registers, designed to fetch and
+ * execute instructions written in the Hack machine language.
+ * In particular, functions as follows:
+ * Executes the inputted instruction according to the Hack machine
+ * language specification. The D and A in the language specification
+ * refer to CPU-resident registers, while M refers to the external
+ * memory location addressed by A, i.e. to Memory[A]. The inM input
+ * holds the value of this location. If the current instruction needs
+ * to write a value to M, the value is placed in outM, the address
+ * of the target location is placed in the addressM output, and the
+ * writeM control bit is asserted. (When writeM=0, any value may
+ * appear in outM). The outM and writeM outputs are combinational:
+ * they are affected instantaneously by the execution of the current
+ * instruction. The addressM and pc outputs are clocked: although they
+ * are affected by the execution of the current instruction, they commit
+ * to their new values only in the next time unit. If reset=1 then the
+ * CPU jumps to address 0 (i.e. sets pc=0 in next time unit) rather
+ * than to the address resulting from executing the current instruction.
+ */
+
+CHIP CPU {
+
+    IN  inM[16],         // M value input  (M = contents of RAM[A])
+        instruction[16], // Instruction for execution
+        reset;           // Signals whether to re-start the current
+                         // program (reset=1) or continue executing
+                         // the current program (reset=0).
+
+    OUT outM[16],        // M value output
+        writeM,          // Write into M?
+        addressM[15],    // Address in data memory (of M)
+        pc[15];          // address of next instruction
+
+    PARTS:
+    
+	Not(x=instruction[15],out=ni);
+	Mux16(x=outtM,y=instruction,sel=ni,out=i);
+
+	Or(x=ni,y=instruction[5],out=intoA);
+	ARegister(in=i,load=intoA,out=A,out[0..14]=addressM);
+
+	And(x=instruction[15],y=instruction[12],out=AorM);
+	Mux16(x=A,y=inM,sel=AorM,out=AM);
+	
+	ALU(x=D,y=AM,zx=instruction[11],nx=instruction[10],zy=instruction[9],ny=instruction[8],f=instruction[7],no=instruction[6],out=outtM,out=outM,zr=zr,ng=ng);
+
+	And(x=instruction[15],y=instruction[4],out=intoD);
+	DRegister(in=outtM,load=intoD,out=D);
+
+	And(x=instruction[15],y=instruction[3],out=writeM);
+
+	Not(x=ng,out=pos);
+	Not(x=zr,out=nzr);
+	And(x=instruction[15],y=instruction[0],out=greaterthan);
+	And(x=pos,y=nzr,out=posnzr);
+	And(x=greaterthan,y=posnzr,out=temp1);
+
+	And(x=instruction[15],y=instruction[1],out=equal);
+	And(x=equal,y=zr,out=temp2);
+
+	And(x=instruction[15],y=instruction[2],out=lessthan);
+	And(x=lessthan,y=ng,out=temp3);
+
+	Or(x=temp1,y=temp2,out=temp4);
+	Or(x=temp3,y=temp4,out=temp5);
+
+	PC(x=A,load=temp5,inc=true,reset=reset,out[0..14]=pc);
+
+}
